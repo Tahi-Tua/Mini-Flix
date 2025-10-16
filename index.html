@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>tht-film</title>
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet"/>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background: linear-gradient(120deg,#232526 0%,#2c5364 70%);
+    color: #fff; min-height: 100vh;
+    line-height: 1.4;
+  }
+  header {
+    background: rgba(34,37,52,0.85);
+    padding: 14px 0;
+    box-shadow: 0 4px 8px rgba(0,0,0,.18);
+    display: flex; justify-content: center; align-items: center;
+    position: sticky; top:0; z-index: 100;
+  }
+  nav a {
+    color: #ffd770;
+    font-weight: 700;
+    margin: 0 26px; text-decoration: none;
+    font-size: 1.18em; letter-spacing: .5px;
+  }
+  nav a:hover { color: #f9bd29; }
+  .main {
+    max-width: 1200px;
+    margin: 22px auto;
+    padding: 0 15px;
+  }
+  h2 {
+    margin: 16px 0 8px;
+    color: #f9bd29;
+    font-size: 1.45em;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
+    gap: 32px;
+  }
+  .movie-card {
+    background: #20222e;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.17);
+    display: flex; flex-direction: column; align-items: center;
+    transition: transform .22s;
+    position: relative;
+  }
+  .movie-card:hover { transform: translateY(-2px) scale(1.03);}
+  .movie-card img {
+    width:100%; max-width:220px;
+    border-radius: 9px;
+    box-shadow: 0 3px 12px #1320248e;
+    margin-bottom: 14px;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    background:#1a1c23;
+    border: solid 2px #262740;
+  }
+  .movie-card a {
+    font-size: 1.12em; font-weight: 700;
+    color: #9fe9fd; text-decoration: none; margin-bottom: 7px; display: block; text-align: center;
+  }
+  .movie-card span {
+    font-size: 1em; color:#ffd770; margin-bottom: 12px;
+    background: #262940; padding:3px 13px; border-radius:8px;
+    font-weight:bold; letter-spacing: .2px;
+  }
+  .movie-card button {
+    background: linear-gradient(90deg,#f9bd29 70%,#ffd770 100%);
+    color: #222; border:none; font-size: 1.07em; font-weight:600;
+    padding: 8px 22px; border-radius:8px; box-shadow:0 2px 6px #23252633;
+    margin-top: 10px; cursor:pointer; letter-spacing:.5px;
+    transition:box-shadow .2s,background .18s;
+  }
+  .movie-card button:hover {
+    background: linear-gradient(90deg,#ffd770 60%, #f9bd29 100%);
+    box-shadow: 0 0px 12px #f9bd2966;
+  }
+  /* Modal responsive + esthétique */
+  .modal {
+    display:none; position:fixed; z-index:9999;
+    left:0; top:0; width:100%; height:100%;
+    background: rgba(22,29,37,0.87);
+    justify-content:center; align-items:center;
+    transition:background .3s;
+  }
+  .modal.active { display:flex; }
+  .modal-content {
+    background: #23272f;
+    border-radius: 14px;
+    padding: 23px 18px 18px;
+    max-width: 410px; width:95vw;
+    box-shadow: 0 7px 26px #131a2580;
+    text-align:center; position:relative;
+    animation: fadein .28s;
+  }
+  @keyframes fadein { from{opacity:.23; transform:scale(.98);} to{opacity:1; transform:scale(1);} }
+  .modal h3 {
+    color:#ffd770; margin-bottom:13px;
+    font-size:1.16em; text-shadow:0 2px 12px #23252644;
+  }
+  .modal .close {
+    position: absolute; top: 12px; right: 18px;
+    font-size: 2.1em; color:#fff;
+    cursor:pointer; font-weight:600; transition:color .2s;
+  }
+  .modal .close:hover { color:#f9bd29; }
+  .modal img { width:86%; border-radius:10px; box-shadow:0 2px 14px #23252622; margin-bottom:14px; background:#1a1c23;}
+  .modal p { margin:11px 0 12px; color:#d2e3ed; font-size:1em; line-height:1.39;}
+  .modal video { width:95%; border-radius:9px; margin-top:11px; background:#161b22; box-shadow:0 4px 18px #13202448;}
+  @media(max-width:600px){
+    .grid{gap:18px;}
+    .modal-content{max-width:96vw;}
+    .movie-card img{max-width:98vw;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <nav>
+    <a href="#">ACCUEIL</a>
+    <a href="#">NOUVEAUTÉS</a>
+    <a href="#">TOP CRITIQUES</a>
+  </nav>
+</header>
+<div class="main">
+  <h2>Derniers Ajouts</h2>
+  <div class="grid" id="films-grid"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+const films = [
+  {
+    title: "À contre-sens 3 (2025) HD",
+    image: "https://media.themoviedb.org/t/p/original/iNncvRAgj8SQA25OhjNZeEElWCK.jpg",
+    description: "Le mariage de Jenna et Lion marque les retrouvailles entre Noah et Nick après leur rupture. L'incapacité de Nick à pardonner à Noah représente un obstacle difficile à surmonter...",
+    src: "https://share31960.sharecloudy.com/files/aa/1LMgqP292BY3gvb7pXIdsfywpkuhnx0oiMF.m3u8"
+  },
+  {
+    title: "Film 2",
+    image: "https://picsum.photos/200/300?random=2",
+    description: "Voyage émouvant au cœur d’une famille hors norme.",
+    src: "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
+  },
+  {
+    title: "Film 3",
+    image: "https://picsum.photos/200/300?random=3",
+    description: "Chef-d’œuvre dramatique primé à Cannes.",
+    src: "https://moiptv.net:8443/PLTV/88888888/224/3221227207/index.m3u8"
+  },
+  {
+    title:"Film 4",
+    image:"https://picsum.photos/200/300?random=4",
+    description:"Comédie survoltée avec un duo d’acteurs.",
+    src:"https://cmaf-hls.akamaized.net/latest/bipbop/cmaf/prog_index.m3u8"
+  }
+];
+
+const hlsInstances = [];
+const container = document.getElementById('films-grid');
+films.forEach((film, index) => {
+  // Génération carte
+  const card = document.createElement('div');
+  card.className = 'movie-card';
+  card.innerHTML = `
+    <img src="${film.image}" alt="${film.title}">
+    <a href="#">${film.title}</a>
+    <span>Format HLS</span>
+    <button data-toggle="modal${index}">Voir Détail</button>`;
+  container.appendChild(card);
+
+  // Génération modal
+  const modalHTML = `
+<div id="modal${index}" class="modal" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-content">
+    <span class="close" aria-label="Fermer">&times;</span>
+    <h3>${film.title}</h3>
+    <img src="${film.image}" alt="${film.title}">
+    <p>${film.description}</p>
+    <video controls playsinline></video>
+  </div>
+</div>`;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  // Event open modal & init HLS
+  card.querySelector('button').onclick = () => {
+    const modal = document.getElementById(`modal${index}`);
+    modal.classList.add('active');
+    const video = modal.querySelector('video');
+    // Clean possible précedent
+    if (hlsInstances[index]) {
+      hlsInstances[index].destroy();
+      hlsInstances[index] = null;
+    }
+    // HLS player
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(film.src);
+      hls.attachMedia(video);
+      hlsInstances[index] = hls;
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = film.src;
+    }
+    video.focus();
+  };
+
+  // Fermeture par croix
+  document.querySelector(`#modal${index} .close`).onclick = function () {
+    closeModal(index);
+  };
+  // Fermeture par clic hors modal
+  document.getElementById(`modal${index}`).onclick = function(e) {
+    if (e.target === this) closeModal(index);
+  };
+  // Fonction fermeture
+  function closeModal(idx) {
+    const modal = document.getElementById(`modal${idx}`);
+    modal.classList.remove('active');
+    const video = modal.querySelector('video');
+    video.pause();
+    if (hlsInstances[idx]) {
+      hlsInstances[idx].destroy();
+      hlsInstances[idx] = null;
+    }
+    video.removeAttribute('src');
+  }
+});
+</script>
+</body>
+</html>
